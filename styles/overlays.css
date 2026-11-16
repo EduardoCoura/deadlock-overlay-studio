@@ -83,6 +83,7 @@
   text-transform: uppercase;
   color: var(--ov-label, #f1ed62);
   line-height: 1.2;
+  white-space: nowrap;
 }
 
 .ov-stat-value {
@@ -93,6 +94,7 @@
   color: var(--ov-text, #ffffff);
   letter-spacing: 0.02em;
   text-shadow: 0 2px 6px rgba(0, 0, 0, 0.45);
+  white-space: nowrap;
 }
 
 .ov-stat-sub {
@@ -122,6 +124,7 @@
   font-weight: 800;
   letter-spacing: 0.04em;
   text-transform: uppercase;
+  white-space: nowrap;
 }
 .ov-delta--pos {
   background: rgba(34, 197, 94, 0.2);
@@ -316,6 +319,7 @@
   letter-spacing: 0.09em;
   text-transform: uppercase;
   color: var(--ov-accent);
+  white-space: nowrap;
 }
 
 .ov-boxed-rank-line {
@@ -331,6 +335,7 @@
   letter-spacing: 0.04em;
   text-transform: uppercase;
   color: var(--ov-text);
+  white-space: nowrap;
 }
 
 /* ==========================================================================
@@ -1270,6 +1275,7 @@
   font-weight: 800;
   color: var(--ov-accent);
   text-transform: uppercase;
+  white-space: nowrap;
 }
 
 .ov-pill-sep {
@@ -1305,4 +1311,5 @@
   color: #fca5a5;
   font-size: 0.66rem;
   font-weight: 800;
+  white-space: nowrap;
 }
