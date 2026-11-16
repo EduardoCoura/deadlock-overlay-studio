@@ -1,4 +1,5 @@
 import { STAT_CATALOG, getStylePreset } from './config.js';
+import { formatElapsedClock } from './deadlock-api.js';
 
 const STAT_META_MAP = new Map(STAT_CATALOG.map((s) => [s.id, s]));
 
@@ -102,6 +103,25 @@ function makeFormPills(recentForm, compact = false) {
   return wrap;
 }
 
+function makeLiveClockNode(className, live, prefix = '') {
+  const span = el('span', className, `${prefix}${live.elapsedLabel}`);
+  if (!live.simulated && live.startTime > 0) {
+    span.dataset.liveStartTime = String(live.startTime);
+    if (prefix) span.dataset.livePrefix = prefix;
+  }
+  return span;
+}
+
+export function tickLiveClockElements(root = document) {
+  const nodes = root.querySelectorAll('[data-live-start-time]');
+  for (const node of nodes) {
+    const startSec = Number.parseInt(node.dataset.liveStartTime, 10);
+    if (!Number.isFinite(startSec) || startSec <= 0) continue;
+    const prefix = node.dataset.livePrefix || '';
+    node.textContent = `${prefix}${formatElapsedClock(startSec)}`;
+  }
+}
+
 function makeLiveBanner(live, compact = false) {
   if (!live || !live.isActive) return null;
   const bar = el('div', `ov-live-bar ${live.teamIdx === 1 ? 'is-sapphire' : 'is-amber'} ${compact ? 'is-compact' : ''}`);
@@ -112,8 +132,12 @@ function makeLiveBanner(live, compact = false) {
   bar.appendChild(el('span', 'ov-live-sep', '•'));
   bar.appendChild(el('span', 'ov-live-hero', live.heroName));
   bar.appendChild(el('span', 'ov-live-sep', '•'));
-  bar.appendChild(el('span', 'ov-live-team', live.teamName));
-  bar.appendChild(el('span', 'ov-live-time', live.elapsedLabel));
+  if (live.isBrawl && live.amberBrawlScore !== null && live.sapphireBrawlScore !== null) {
+    bar.appendChild(el('span', 'ov-live-team', `Brawl ${live.amberBrawlScore}×${live.sapphireBrawlScore}`));
+  } else {
+    bar.appendChild(el('span', 'ov-live-team', live.teamName));
+  }
+  bar.appendChild(makeLiveClockNode('ov-live-time', live));
   return bar;
 }
 
@@ -440,17 +464,37 @@ function renderDlkAmberSapphire(config, metrics) {
   root.appendChild(factionHeader);
 
   if (config.showLiveBar && metrics.live?.isActive) {
-    const total = Math.max(1, metrics.live.amberSouls + metrics.live.sapphireSouls);
-    const amberPct = Math.round((metrics.live.amberSouls / total) * 100);
     const liveRow = el('div', 'ov-faction-live');
-    liveRow.appendChild(el('span', 'ov-faction-souls is-amber', `AMBER ${(metrics.live.amberSouls / 1000).toFixed(1)}k`));
-    const meter = el('div', 'ov-faction-meter');
-    const fill = el('div', 'ov-faction-meter-amber');
-    fill.style.width = `${amberPct}%`;
-    meter.appendChild(fill);
-    liveRow.appendChild(meter);
-    liveRow.appendChild(el('span', 'ov-faction-souls is-sapphire', `${(metrics.live.sapphireSouls / 1000).toFixed(1)}k SAPPHIRE`));
-    liveRow.appendChild(el('span', 'ov-faction-clock', metrics.live.elapsedLabel));
+    const isBrawlScore =
+      metrics.live.isBrawl &&
+      metrics.live.amberBrawlScore !== null &&
+      metrics.live.sapphireBrawlScore !== null;
+
+    if (isBrawlScore) {
+      const aRounds = metrics.live.amberBrawlScore;
+      const sRounds = metrics.live.sapphireBrawlScore;
+      const totalRounds = Math.max(1, aRounds + sRounds);
+      const amberPct = aRounds === sRounds ? 50 : Math.round((aRounds / totalRounds) * 100);
+      liveRow.appendChild(el('span', 'ov-faction-souls is-amber', `AMBER ${aRounds}`));
+      const meter = el('div', 'ov-faction-meter');
+      const fill = el('div', 'ov-faction-meter-amber');
+      fill.style.width = `${amberPct}%`;
+      meter.appendChild(fill);
+      liveRow.appendChild(meter);
+      liveRow.appendChild(el('span', 'ov-faction-souls is-sapphire', `${sRounds} SAPPHIRE`));
+    } else {
+      const total = Math.max(1, metrics.live.amberSouls + metrics.live.sapphireSouls);
+      const amberPct = Math.round((metrics.live.amberSouls / total) * 100);
+      liveRow.appendChild(el('span', 'ov-faction-souls is-amber', `AMBER ${(metrics.live.amberSouls / 1000).toFixed(1)}k`));
+      const meter = el('div', 'ov-faction-meter');
+      const fill = el('div', 'ov-faction-meter-amber');
+      fill.style.width = `${amberPct}%`;
+      meter.appendChild(fill);
+      liveRow.appendChild(meter);
+      liveRow.appendChild(el('span', 'ov-faction-souls is-sapphire', `${(metrics.live.sapphireSouls / 1000).toFixed(1)}k SAPPHIRE`));
+    }
+
+    liveRow.appendChild(makeLiveClockNode('ov-faction-clock', metrics.live));
     root.appendChild(liveRow);
   }
 
@@ -562,8 +606,7 @@ function renderDlkMinimalPill(config, metrics) {
   }
 
   if (config.showLiveBar && metrics.live?.isActive) {
-    const liveBadge = el('span', 'ov-pill-live', `● ${metrics.live.elapsedLabel}`);
-    root.appendChild(liveBadge);
+    root.appendChild(makeLiveClockNode('ov-pill-live', metrics.live, '● '));
   }
 
   return root;

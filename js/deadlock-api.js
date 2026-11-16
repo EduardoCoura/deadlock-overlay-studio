@@ -256,9 +256,38 @@ export async function getLeaderboardPlayers(region = 'SAmerica') {
   return entries;
 }
 
+export function formatElapsedClock(startTimeSec) {
+  if (!startTimeSec || !Number.isFinite(startTimeSec)) return '0:00';
+  const elapsed = Math.max(0, Math.floor(Date.now() / 1000) - startTimeSec);
+  const hours = Math.floor(elapsed / 3600);
+  const mins = Math.floor((elapsed % 3600) / 60);
+  const secs = elapsed % 60;
+  if (hours > 0) {
+    return `${hours}:${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+  }
+  return `${mins}:${String(secs).padStart(2, '0')}`;
+}
+
+export async function getSteamProfilesBatch(accountIds) {
+  const unique = [...new Set((accountIds || []).map((id) => Number.parseInt(id, 10)).filter((id) => Number.isFinite(id) && id > 0))].slice(0, 100);
+  const map = new Map();
+  if (unique.length === 0) return map;
+  try {
+    const list = await fetchJson(`/v1/players/steam?account_ids=${unique.join(',')}`);
+    if (Array.isArray(list)) {
+      for (const p of list) {
+        if (p?.account_id) map.set(p.account_id, p);
+      }
+    }
+  } catch {
+    // Graceful fallback: caller renders Jogador #<id> when Steam cache unavailable
+  }
+  return map;
+}
+
 export async function getActiveMatchesSample() {
   const data = await fetchJson('/v1/matches/active');
-  return Array.isArray(data) ? data.slice(0, 12) : [];
+  return Array.isArray(data) ? data.slice(0, 15) : [];
 }
 
 export async function fetchPlayerSnapshot(accountId, { forceRefresh = false } = {}) {
@@ -281,7 +310,7 @@ export async function fetchPlayerSnapshot(accountId, { forceRefresh = false } = 
       fetchJson(`/v1/players/${id}/match-history`, opts),
       fetchJson(`/v1/players/hero-stats?account_ids=${id}&game_mode=normal`, opts),
       fetchJson(`/v1/players/hero-stats?account_ids=${id}&game_mode=street_brawl`, opts),
-      fetchJson(`/v1/matches/active?account_id=${id}`, opts),
+      fetchJson(`/v1/matches/active?account_ids=${id}`, opts),
     ]),
   ]);
 
@@ -566,11 +595,20 @@ export function computePlayerMetrics(snapshot, config) {
     const playerRow = (activeMatch.players || []).find((p) => p.account_id === snapshot.accountId);
     const liveHero = playerRow?.hero_id ? assets.heroesById.get(playerRow.hero_id) : topHeroAsset;
     const teamIdx = playerRow?.team === 1 ? 1 : 0;
-    const elapsedSec = activeMatch.start_time ? Math.max(0, Math.floor(Date.now() / 1000) - activeMatch.start_time) : 0;
+    const isBrawl = activeMatch.game_mode === 4;
+    const teamStatsList = Array.isArray(activeMatch.team_stats) ? activeMatch.team_stats : [];
+    const team0Stats = teamStatsList.find((t) => t.team === 0);
+    const team1Stats = teamStatsList.find((t) => t.team === 1);
+    const amberBrawlScore = typeof team0Stats?.brawl_score === 'number' ? team0Stats.brawl_score : null;
+    const sapphireBrawlScore = typeof team1Stats?.brawl_score === 'number' ? team1Stats.brawl_score : null;
+
     live = {
       isActive: true,
       simulated: false,
       matchId: activeMatch.match_id,
+      startTime: activeMatch.start_time || 0,
+      isBrawl,
+      modeLabel: isBrawl ? 'Street Brawl' : activeMatch.match_mode === 4 ? 'Ranked' : 'Normal',
       heroName: liveHero?.name || 'Em Partida',
       heroPortrait: liveHero?.images?.icon_hero_card_webp || liveHero?.images?.icon_image_small_webp || '',
       heroSmall: liveHero?.images?.icon_image_small_webp || '',
@@ -578,7 +616,9 @@ export function computePlayerMetrics(snapshot, config) {
       teamName: teamIdx === 0 ? 'Amber Hand' : 'Sapphire Flame',
       amberSouls: activeMatch.net_worth_team_0 || 0,
       sapphireSouls: activeMatch.net_worth_team_1 || 0,
-      elapsedLabel: `${Math.floor(elapsedSec / 60)}:${String(elapsedSec % 60).padStart(2, '0')}`,
+      amberBrawlScore,
+      sapphireBrawlScore,
+      elapsedLabel: formatElapsedClock(activeMatch.start_time),
       spectators: activeMatch.spectators || 0,
     };
   } else if (config.simulateLive) {
@@ -586,6 +626,9 @@ export function computePlayerMetrics(snapshot, config) {
       isActive: true,
       simulated: true,
       matchId: 0,
+      startTime: 0,
+      isBrawl: false,
+      modeLabel: 'Ranked',
       heroName: topHeroAsset?.name || 'Infernus',
       heroPortrait: topHeroAsset?.images?.icon_hero_card_webp || '',
       heroSmall: topHeroAsset?.images?.icon_image_small_webp || '',
@@ -593,6 +636,8 @@ export function computePlayerMetrics(snapshot, config) {
       teamName: 'Amber Hand',
       amberSouls: 64800,
       sapphireSouls: 61200,
+      amberBrawlScore: null,
+      sapphireBrawlScore: null,
       elapsedLabel: '18:42',
       spectators: 14,
     };

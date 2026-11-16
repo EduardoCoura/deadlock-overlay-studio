@@ -106,6 +106,7 @@ export async function generateStandaloneObsHtml(config) {
 
     tick(false);
     setInterval(() => tick(true), Math.max(15, CONFIG.refreshSeconds) * 1000);
+    setInterval(() => tickLiveClockElements(document), 1000);
   })();
   </script>
 </body>

@@ -17,10 +17,11 @@ import {
   getActiveMatchesSample,
   getLeaderboardPlayers,
   getStaticAssets,
+  getSteamProfilesBatch,
   parseSteamInput,
   searchSteamPlayers,
 } from './deadlock-api.js';
-import { getContrastTextColor, renderOverlay } from './overlay-renderer.js';
+import { getContrastTextColor, renderOverlay, tickLiveClockElements } from './overlay-renderer.js';
 import { generateStandaloneObsHtml } from './exporter.js';
 
 const IS_OBS_MODE = new URLSearchParams(window.location.search).get('obs') === '1';
@@ -634,21 +635,37 @@ async function loadLiveActivePlayers() {
   statusEl.textContent = 'Buscando partidas ao vivo no servidor agora...';
   try {
     const [matches, assets] = await Promise.all([getActiveMatchesSample(), getStaticAssets()]);
-    const items = [];
+    const candidates = [];
     for (const m of matches) {
       const p = (m.players || []).find((pl) => pl.account_id > 0);
-      if (!p) continue;
-      const hero = assets.heroesById.get(p.hero_id);
-      const mins = m.start_time ? Math.max(0, Math.floor((Date.now() / 1000 - m.start_time) / 60)) : 0;
-      items.push({
-        accountId: p.account_id,
-        name: `Jogador #${p.account_id}`,
-        avatar: hero?.images?.icon_image_small_webp || '',
-        sub: `Ao vivo com ${hero?.name || 'Herói'} • ${mins} min • Partida #${m.match_id}`,
-        badge: 'AO VIVO',
-      });
+      if (p) candidates.push({ match: m, player: p });
     }
-    statusEl.textContent = `${items.length} jogadores em partida neste momento:`;
+
+    const steamMap = await getSteamProfilesBatch(candidates.map((c) => c.player.account_id));
+
+    const items = candidates.map(({ match: m, player: p }) => {
+      const hero = assets.heroesById.get(p.hero_id);
+      const profile = steamMap.get(p.account_id);
+      const mins = m.start_time ? Math.max(0, Math.floor((Date.now() / 1000 - m.start_time) / 60)) : 0;
+      const isBrawl = m.game_mode === 4;
+      const t0 = Array.isArray(m.team_stats) ? m.team_stats.find((t) => t.team === 0) : null;
+      const t1 = Array.isArray(m.team_stats) ? m.team_stats.find((t) => t.team === 1) : null;
+      const modeTag = isBrawl && typeof t0?.brawl_score === 'number' && typeof t1?.brawl_score === 'number'
+        ? `Street Brawl ${t0.brawl_score}×${t1.brawl_score}`
+        : m.match_mode === 4
+          ? 'Ranked'
+          : 'Normal';
+
+      return {
+        accountId: p.account_id,
+        name: profile?.personaname || `Jogador #${p.account_id}`,
+        avatar: profile?.avatarmedium || hero?.images?.icon_image_small_webp || '',
+        sub: `${hero?.name || 'Herói'} • ${modeTag} • ${mins} min • Partida #${m.match_id}`,
+        badge: 'AO VIVO',
+      };
+    });
+
+    statusEl.textContent = `${items.length} jogadores em partida agora (Top 200 da aba Assistir):`;
     renderPlayerResults(items);
   } catch (err) {
     statusEl.textContent = err?.message || 'Erro ao buscar partidas ao vivo.';
@@ -777,7 +794,18 @@ function wireStudioEvents() {
    Bootstrap
    ========================================================================== */
 
+let liveClockTimer = null;
+
+function startLiveClock() {
+  clearInterval(liveClockTimer);
+  liveClockTimer = setInterval(() => {
+    tickLiveClockElements(document);
+  }, 1000);
+}
+
 async function init() {
+  startLiveClock();
+
   if (IS_OBS_MODE) {
     document.documentElement.dataset.obs = 'true';
     const viewport = byId('stream-viewport');
