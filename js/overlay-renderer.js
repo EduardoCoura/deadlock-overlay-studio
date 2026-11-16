@@ -600,6 +600,7 @@ export function renderOverlay(container, config, metrics) {
   container.style.setProperty('--ov-blur', `${config.blur}px`);
   container.style.setProperty('--ov-scale', String(config.scale));
   container.dataset.gradient = config.gradient ? 'true' : 'false';
+  container.dataset.transparentBg = config.bgAlpha === 0 ? 'true' : 'false';
   container.dataset.position = config.position;
   container.dataset.style = preset.id;
 

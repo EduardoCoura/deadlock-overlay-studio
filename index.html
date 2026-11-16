@@ -3,12 +3,16 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="color-scheme" content="dark">
   <title>Deadlock Overlay Studio</title>
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230b0e14'/%3E%3Crect x='4' y='4' width='56' height='56' rx='11' fill='none' stroke='%23f1ed62' stroke-width='4'/%3E%3Ctext x='32' y='42' text-anchor='middle' font-family='Arial,sans-serif' font-weight='900' font-size='26' fill='%23f1ed62'%3EDLK%3C/text%3E%3C/svg%3E">
   <script>
     if (new URLSearchParams(window.location.search).get('obs') === '1') {
       document.documentElement.dataset.obs = 'true';
+    } else {
+      var meta = document.createElement('meta');
+      meta.name = 'color-scheme';
+      meta.content = 'dark';
+      document.head.appendChild(meta);
     }
   </script>
   <link rel="preconnect" href="https://fonts.googleapis.com">

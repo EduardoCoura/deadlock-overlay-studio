@@ -780,6 +780,12 @@ function wireStudioEvents() {
 async function init() {
   if (IS_OBS_MODE) {
     document.documentElement.dataset.obs = 'true';
+    const viewport = byId('stream-viewport');
+    if (viewport) {
+      viewport.removeAttribute('data-scene');
+      viewport.removeAttribute('data-has-art');
+      viewport.style.backgroundImage = '';
+    }
     await loadPlayerData({ forceRefresh: false });
     scheduleAutoRefresh();
     return;

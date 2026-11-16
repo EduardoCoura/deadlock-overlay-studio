@@ -2,8 +2,11 @@
    Deadlock Overlay Studio — Editor Chrome & OBS Mode
    ========================================================================== */
 
-:root {
+:root:not([data-obs="true"]) {
   color-scheme: dark;
+}
+
+:root {
   --st-bg: #090c12;
   --st-surface: #0f141f;
   --st-surface-2: #161d2c;
@@ -85,12 +88,31 @@ button {
 /* ==========================================================================
    OBS Pure Transparent Runtime Mode (?obs=1)
    ========================================================================== */
+html[data-obs="true"] {
+  color-scheme: normal !important;
+}
+
+html[data-obs="true"],
+html[data-obs="true"] body,
+html[data-obs="true"] .studio-shell,
+html[data-obs="true"] .studio-layout,
+html[data-obs="true"] .canvas-pane,
+html[data-obs="true"] .stream-viewport {
+  background: transparent !important;
+  background-color: transparent !important;
+  background-image: none !important;
+}
+
 html[data-obs="true"],
 html[data-obs="true"] body {
-  background: transparent !important;
   width: 100vw;
   height: 100vh;
   overflow: hidden;
+}
+
+html[data-obs="true"] .studio-shell {
+  min-height: 0;
+  height: 100vh;
 }
 
 html[data-obs="true"] .studio-header,
@@ -109,7 +131,6 @@ html[data-obs="true"] .studio-layout {
 html[data-obs="true"] .canvas-pane {
   padding: 0;
   height: 100vh;
-  background: transparent !important;
 }
 
 html[data-obs="true"] .stream-viewport {
@@ -120,8 +141,12 @@ html[data-obs="true"] .stream-viewport {
   border: 0;
   border-radius: 0;
   box-shadow: none;
-  background: transparent !important;
-  background-image: none !important;
+}
+
+html[data-obs="true"] .stream-viewport::before {
+  display: none !important;
+  content: none !important;
+  background: none !important;
 }
 
 /* ==========================================================================

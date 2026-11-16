@@ -58,6 +58,20 @@
   user-select: none;
 }
 
+.overlay-anchor[data-transparent-bg="true"] .ov-boxed-tile,
+.overlay-anchor[data-transparent-bg="true"] .ov-boxed-center,
+.overlay-anchor[data-transparent-bg="true"] .ov-angled-shell,
+.overlay-anchor[data-transparent-bg="true"] .ov-trn-glass,
+.overlay-anchor[data-transparent-bg="true"] .ov-trn-card,
+.overlay-anchor[data-transparent-bg="true"] .ov-dlk-occult,
+.overlay-anchor[data-transparent-bg="true"] .ov-dlk-factions,
+.overlay-anchor[data-transparent-bg="true"] .ov-dlk-spotlight,
+.overlay-anchor[data-transparent-bg="true"] .ov-dlk-pill {
+  background: transparent !important;
+  backdrop-filter: none !important;
+  box-shadow: none !important;
+}
+
 /* Shared Stat Tokens */
 .ov-stat-label {
   display: inline-flex;
