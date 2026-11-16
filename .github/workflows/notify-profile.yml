@@ -1,0 +1,29 @@
+name: Notify Profile City
+
+on:
+  push:
+  create:
+  release:
+    types: [published]
+  pull_request:
+    types: [opened, closed]
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    if: github.actor != 'github-actions[bot]'
+    steps:
+      - name: Trigger profile update
+        env:
+          PROFILE_TOKEN: ${{ secrets.PROFILE_TOKEN }}
+        run: |
+          if [ -z "$PROFILE_TOKEN" ]; then
+            echo "PROFILE_TOKEN secret not set yet — skipping instant dispatch."
+            exit 0
+          fi
+          curl -fsSL -X POST \
+            -H "Accept: application/vnd.github+json" \
+            -H "Authorization: Bearer $PROFILE_TOKEN" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            "https://api.github.com/repos/EduardoCoura/EduardoCoura/dispatches" \
+            -d '{"event_type":"repo-updated"}'
