@@ -1,0 +1,1278 @@
+/* ==========================================================================
+   Deadlock Overlay Studio — 8 Overlay Styles (Tracker.gg + Deadlock Native)
+   ========================================================================== */
+
+.overlay-stage {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.overlay-anchor {
+  position: absolute;
+  padding: 24px;
+  max-width: calc(100% - 16px);
+  pointer-events: auto;
+  transform: scale(var(--ov-scale, 1));
+  transition: transform 0.2s ease;
+}
+
+.overlay-anchor[data-position="top-left"] {
+  top: 0;
+  left: 0;
+  transform-origin: top left;
+}
+.overlay-anchor[data-position="top-center"] {
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%) scale(var(--ov-scale, 1));
+  transform-origin: top center;
+}
+.overlay-anchor[data-position="top-right"] {
+  top: 0;
+  right: 0;
+  transform-origin: top right;
+}
+.overlay-anchor[data-position="bottom-left"] {
+  bottom: 0;
+  left: 0;
+  transform-origin: bottom left;
+}
+.overlay-anchor[data-position="bottom-center"] {
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%) scale(var(--ov-scale, 1));
+  transform-origin: bottom center;
+}
+.overlay-anchor[data-position="bottom-right"] {
+  bottom: 0;
+  right: 0;
+  transform-origin: bottom right;
+}
+
+.ov-widget {
+  font-family: "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
+  color: var(--ov-text, #ffffff);
+  font-variant-numeric: tabular-nums;
+  user-select: none;
+}
+
+/* Shared Stat Tokens */
+.ov-stat-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ov-label, #f1ed62);
+  line-height: 1.2;
+}
+
+.ov-stat-value {
+  font-family: "Barlow Condensed", "Bahnschrift", "Arial Narrow", sans-serif;
+  font-size: 1.55rem;
+  font-weight: 800;
+  line-height: 1.05;
+  color: var(--ov-text, #ffffff);
+  letter-spacing: 0.02em;
+  text-shadow: 0 2px 6px rgba(0, 0, 0, 0.45);
+}
+
+.ov-stat-sub {
+  font-size: 0.64rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.68);
+  line-height: 1.2;
+  margin-top: 2px;
+}
+
+.ov-svg-icon,
+.ov-stat-icon,
+.ov-card-icon {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+  color: var(--ov-accent, #f1ed62);
+}
+
+/* Rank Delta Pills */
+.ov-delta {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 0.66rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.ov-delta--pos {
+  background: rgba(34, 197, 94, 0.2);
+  color: #4ade80;
+  border: 1px solid rgba(74, 222, 128, 0.35);
+}
+.ov-delta--neg {
+  background: rgba(239, 68, 68, 0.2);
+  color: #f87171;
+  border: 1px solid rgba(248, 113, 113, 0.35);
+}
+.ov-delta--neutral {
+  background: rgba(250, 204, 21, 0.16);
+  color: #fde047;
+  border: 1px solid rgba(250, 204, 21, 0.3);
+}
+
+/* Recent Form W/L Pills */
+.ov-form {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.ov-form-dot {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 4px;
+  border-radius: 4px;
+  font-size: 0.62rem;
+  font-weight: 800;
+  color: #090c12;
+}
+.ov-form-dot.is-win {
+  background: #4ade80;
+}
+.ov-form-dot.is-loss {
+  background: #f87171;
+}
+.ov-form--compact .ov-form-dot {
+  min-width: 8px;
+  width: 8px;
+  height: 8px;
+  padding: 0;
+  border-radius: 50%;
+}
+
+/* Live Match Strip */
+.ov-live-bar {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 6px;
+  background: rgba(10, 14, 22, 0.86);
+  border: 1px solid rgba(229, 148, 55, 0.45);
+  backdrop-filter: blur(var(--ov-blur, 10px));
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  color: #ffffff;
+  white-space: nowrap;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.4);
+}
+.ov-live-bar.is-sapphire {
+  border-color: rgba(75, 155, 255, 0.5);
+}
+.ov-live-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #ef4444;
+  box-shadow: 0 0 8px #ef4444;
+  animation: ovPulse 1.6s infinite ease-in-out;
+}
+.ov-live-tag {
+  color: #fca5a5;
+  font-weight: 800;
+}
+.ov-live-time {
+  font-family: "Barlow Condensed", sans-serif;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--ov-accent, #f1ed62);
+}
+
+@keyframes ovPulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.45; transform: scale(0.8); }
+}
+
+/* ==========================================================================
+   1. TRACKER BOXED HORIZONTAL (Fortnite / Esports Style)
+   ========================================================================== */
+.ov-trn-boxed {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.ov-boxed-row {
+  display: flex;
+  align-items: stretch;
+  gap: 6px;
+}
+
+.ov-boxed-group {
+  display: flex;
+  gap: 6px;
+}
+
+.ov-boxed-tile {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  min-width: 84px;
+  padding: 9px 14px;
+  border-radius: 6px;
+  background: var(--ov-bg-rgba, rgba(11, 14, 20, 0.72));
+  backdrop-filter: blur(var(--ov-blur, 10px));
+  border-top: 2px solid color-mix(in oklab, var(--ov-accent) 65%, transparent);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+  text-align: center;
+}
+
+.overlay-anchor[data-gradient="true"] .ov-boxed-tile {
+  background: linear-gradient(
+    180deg,
+    color-mix(in oklab, var(--ov-accent) 14%, var(--ov-bg-rgba)) 0%,
+    var(--ov-bg-rgba) 100%
+  );
+}
+
+.ov-boxed-center {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 16px;
+  border-radius: 6px;
+  background: var(--ov-bg-rgba, rgba(11, 14, 20, 0.85));
+  backdrop-filter: blur(var(--ov-blur, 10px));
+  border: 1px solid color-mix(in oklab, var(--ov-accent) 55%, rgba(255, 255, 255, 0.12));
+  box-shadow: 0 10px 26px rgba(0, 0, 0, 0.48);
+}
+
+.ov-boxed-rank-img {
+  width: 44px;
+  height: 44px;
+  object-fit: contain;
+  filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.6));
+}
+
+.ov-boxed-avatar {
+  width: 38px;
+  height: 38px;
+  border-radius: 6px;
+  object-fit: cover;
+  border: 1px solid var(--ov-accent);
+}
+
+.ov-boxed-center-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.ov-boxed-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(0, 0, 0, 0.68);
+  padding: 2px 8px;
+  border-radius: 999px;
+}
+
+.ov-boxed-trn {
+  font-family: "Barlow Condensed", sans-serif;
+  font-weight: 900;
+  font-size: 0.78rem;
+  letter-spacing: 0.06em;
+  color: #ffffff;
+}
+
+.ov-boxed-title {
+  font-size: 0.66rem;
+  font-weight: 800;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--ov-accent);
+}
+
+.ov-boxed-rank-line {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.ov-boxed-rank-name {
+  font-family: "Barlow Condensed", sans-serif;
+  font-size: 1.05rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--ov-text);
+}
+
+/* ==========================================================================
+   2. TRACKER SKEWED BANNER (Apex / Fortnite Horizontal Angled)
+   ========================================================================== */
+.ov-trn-angled {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+}
+
+.ov-angled-ticks {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding-left: 10px;
+}
+
+.ov-angled-chevron {
+  font-family: "Barlow Condensed", sans-serif;
+  font-weight: 900;
+  font-size: 0.95rem;
+  color: var(--ov-accent);
+  margin-right: 2px;
+}
+
+.ov-angled-tick {
+  width: 14px;
+  height: 5px;
+  transform: skewX(-18deg);
+  background: rgba(255, 255, 255, 0.18);
+  border-radius: 1px;
+}
+.ov-angled-tick.is-filled {
+  background: var(--ov-accent);
+  box-shadow: 0 0 8px color-mix(in oklab, var(--ov-accent) 65%, transparent);
+}
+
+.ov-angled-shell {
+  display: flex;
+  align-items: stretch;
+  transform: skewX(-10deg);
+  border-radius: 4px;
+  overflow: hidden;
+  border: 1px solid color-mix(in oklab, var(--ov-accent) 55%, rgba(255, 255, 255, 0.14));
+  background: var(--ov-bg-rgba);
+  backdrop-filter: blur(var(--ov-blur, 8px));
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.5);
+}
+
+.overlay-anchor[data-gradient="true"] .ov-angled-shell {
+  background: linear-gradient(
+    90deg,
+    var(--ov-bg-rgba) 0%,
+    color-mix(in oklab, var(--ov-accent) 16%, var(--ov-bg-rgba)) 100%
+  );
+}
+
+.ov-angled-unskew {
+  transform: skewX(10deg);
+}
+
+.ov-angled-tab {
+  display: flex;
+  align-items: center;
+  padding: 8px 18px;
+  background: var(--ov-accent);
+  color: var(--ov-on-accent, #0b0e14);
+}
+
+.ov-angled-tab-inner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.ov-angled-rank-img {
+  width: 38px;
+  height: 38px;
+  object-fit: contain;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.45));
+}
+
+.ov-angled-id {
+  display: flex;
+  flex-direction: column;
+}
+
+.ov-angled-player {
+  font-size: 0.68rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  opacity: 0.85;
+}
+
+.ov-angled-tier {
+  font-family: "Barlow Condensed", sans-serif;
+  font-size: 1.25rem;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  line-height: 1;
+}
+
+.ov-angled-stats {
+  display: flex;
+  align-items: stretch;
+}
+
+.ov-angled-tile {
+  display: flex;
+  align-items: center;
+  padding: 8px 16px;
+  border-left: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.ov-angled-bottom {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding-left: 4px;
+}
+
+.ov-angled-footer-pill {
+  display: inline-flex;
+  transform: skewX(-10deg);
+  padding: 2px 12px;
+  background: var(--ov-accent);
+  color: var(--ov-on-accent, #0b0e14);
+  font-size: 0.62rem;
+  font-weight: 900;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  border-radius: 2px;
+}
+
+/* ==========================================================================
+   3. TACTICAL GLASS (Valorant Competitive / Flexible Overlay)
+   ========================================================================== */
+.ov-trn-glass {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 12px 16px;
+  border-radius: 10px;
+  background: var(--ov-bg-rgba);
+  backdrop-filter: blur(var(--ov-blur, 16px));
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-left: 4px solid var(--ov-accent);
+  box-shadow: 0 14px 34px rgba(0, 0, 0, 0.48);
+}
+
+.overlay-anchor[data-gradient="true"] .ov-trn-glass {
+  background: linear-gradient(
+    135deg,
+    color-mix(in oklab, var(--ov-accent) 20%, var(--ov-bg-rgba)) 0%,
+    var(--ov-bg-rgba) 55%
+  );
+}
+
+.ov-glass-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.ov-glass-identity {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+}
+
+.ov-glass-rank-img {
+  width: 48px;
+  height: 48px;
+  object-fit: contain;
+  filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.55));
+}
+
+.ov-glass-avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 8px;
+  object-fit: cover;
+}
+
+.ov-glass-mini-avatar {
+  width: 16px;
+  height: 16px;
+  border-radius: 3px;
+  object-fit: cover;
+}
+
+.ov-glass-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.ov-glass-topline {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.ov-glass-player {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.ov-glass-rankrow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.ov-glass-rank {
+  font-family: "Barlow Condensed", sans-serif;
+  font-size: 1.35rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  line-height: 1;
+}
+
+.ov-glass-divider {
+  width: 1px;
+  align-self: stretch;
+  background: linear-gradient(180deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+}
+
+.ov-glass-stats {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+
+.ov-glass-stat {
+  display: flex;
+  flex-direction: column;
+}
+
+.ov-glass-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding-top: 8px;
+  border-top: 1px solid rgba(255, 255, 255, 0.09);
+}
+
+.ov-glass-form-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.ov-glass-form-label,
+.ov-glass-brand {
+  font-size: 0.62rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.56);
+}
+
+/* ==========================================================================
+   4. LIFETIME CARD VERTICAL (Fortnite Lifetime Card Style)
+   ========================================================================== */
+.ov-trn-card {
+  width: 276px;
+  border-radius: 10px;
+  overflow: hidden;
+  background: var(--ov-bg-rgba);
+  backdrop-filter: blur(var(--ov-blur, 10px));
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.55);
+}
+
+.overlay-anchor[data-gradient="true"] .ov-trn-card {
+  background: linear-gradient(
+    180deg,
+    color-mix(in oklab, var(--ov-accent) 14%, var(--ov-bg-rgba)) 0%,
+    var(--ov-bg-rgba) 40%
+  );
+}
+
+.ov-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 9px 14px;
+  background: var(--ov-accent);
+  color: var(--ov-on-accent, #0b0e14);
+}
+
+.ov-card-header-title {
+  font-family: "Barlow Condensed", sans-serif;
+  font-size: 1.05rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.ov-card-header-tag {
+  font-size: 0.62rem;
+  font-weight: 900;
+  letter-spacing: 0.1em;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: rgba(0, 0, 0, 0.18);
+}
+
+.ov-card-profile {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 11px 14px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.ov-card-avatar {
+  width: 34px;
+  height: 34px;
+  border-radius: 6px;
+  object-fit: cover;
+}
+
+.ov-card-profile-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.ov-card-player {
+  font-size: 0.85rem;
+  font-weight: 800;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ov-card-rank-sub {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--ov-accent);
+}
+
+.ov-card-rank-img {
+  width: 36px;
+  height: 36px;
+  object-fit: contain;
+}
+
+.ov-card-rows {
+  display: flex;
+  flex-direction: column;
+}
+
+.ov-card-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 14px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+.ov-card-row-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.ov-card-row-label {
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.07em;
+  color: var(--ov-label);
+}
+
+.ov-card-row-value {
+  font-family: "Barlow Condensed", sans-serif;
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: var(--ov-text);
+}
+
+.ov-card-form-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 14px;
+}
+
+.ov-trn-card .ov-live-bar {
+  width: 100%;
+  border-radius: 0;
+  border-left: 0;
+  border-right: 0;
+  justify-content: center;
+}
+
+.ov-card-footer {
+  padding: 6px 14px;
+  text-align: center;
+  background: rgba(0, 0, 0, 0.45);
+  font-size: 0.62rem;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+/* ==========================================================================
+   5. CURSED APPLE NOIR (Exclusivo Deadlock — Art Deco 1940s Occult)
+   ========================================================================== */
+.ov-dlk-occult {
+  padding: 5px;
+  border-radius: 4px;
+  background: var(--ov-bg-rgba);
+  backdrop-filter: blur(var(--ov-blur, 12px));
+  border: 1px solid color-mix(in oklab, var(--ov-accent) 70%, transparent);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.65), inset 0 0 24px rgba(0, 0, 0, 0.5);
+}
+
+.overlay-anchor[data-gradient="true"] .ov-dlk-occult {
+  background: radial-gradient(
+    circle at top left,
+    color-mix(in oklab, var(--ov-accent) 22%, var(--ov-bg-rgba)),
+    var(--ov-bg-rgba) 70%
+  );
+}
+
+.ov-occult-inner {
+  position: relative;
+  padding: 12px 18px;
+  border: 1px solid color-mix(in oklab, var(--ov-accent) 38%, transparent);
+}
+
+.ov-occult-inner::before,
+.ov-occult-inner::after {
+  content: "◆";
+  position: absolute;
+  font-size: 0.6rem;
+  color: var(--ov-accent);
+  line-height: 1;
+}
+.ov-occult-inner::before {
+  top: -5px;
+  left: -4px;
+}
+.ov-occult-inner::after {
+  bottom: -5px;
+  right: -4px;
+}
+
+.ov-occult-head {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.ov-occult-hero-seal {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid var(--ov-accent);
+  box-shadow: 0 0 12px color-mix(in oklab, var(--ov-accent) 35%, transparent);
+}
+
+.ov-occult-titles {
+  flex: 1;
+}
+
+.ov-occult-kicker {
+  font-size: 0.58rem;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  color: var(--ov-accent);
+}
+
+.ov-occult-player {
+  font-family: "Cinzel", Georgia, "Times New Roman", serif;
+  font-size: 1.15rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--ov-text);
+}
+
+.ov-occult-rank-seal {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding-left: 12px;
+  border-left: 1px solid color-mix(in oklab, var(--ov-accent) 30%, transparent);
+}
+
+.ov-occult-rank-img {
+  width: 40px;
+  height: 40px;
+  object-fit: contain;
+}
+
+.ov-occult-rank-meta {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+}
+
+.ov-occult-rank-name {
+  font-family: "Cinzel", Georgia, serif;
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ov-accent);
+}
+
+.ov-occult-divider {
+  display: flex;
+  align-items: center;
+  margin: 10px 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, color-mix(in oklab, var(--ov-accent) 60%, transparent), transparent);
+  justify-content: center;
+}
+
+.ov-occult-diamond {
+  background: var(--ov-bg-hex, #101218);
+  padding: 0 8px;
+  font-size: 0.65rem;
+  color: var(--ov-accent);
+}
+
+.ov-occult-stats {
+  display: flex;
+  align-items: flex-start;
+  gap: 20px;
+}
+
+.ov-occult-stat {
+  display: flex;
+  flex-direction: column;
+}
+
+.ov-occult-bottom {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 10px;
+  padding-top: 8px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.ov-occult-brand {
+  font-family: "Cinzel", Georgia, serif;
+  font-size: 0.62rem;
+  letter-spacing: 0.16em;
+  color: var(--ov-accent);
+  opacity: 0.85;
+}
+
+/* ==========================================================================
+   6. AMBER VS SAPPHIRE HUD (Exclusivo Deadlock Factions)
+   ========================================================================== */
+.ov-dlk-factions {
+  min-width: min(430px, 100%);
+  max-width: 100%;
+  border-radius: 10px;
+  overflow: hidden;
+  background: var(--ov-bg-rgba);
+  backdrop-filter: blur(var(--ov-blur, 12px));
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  box-shadow: 0 14px 36px rgba(0, 0, 0, 0.55);
+}
+
+.ov-factions-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 14px;
+  background: linear-gradient(
+    90deg,
+    rgba(229, 148, 55, 0.28) 0%,
+    rgba(13, 19, 29, 0.9) 50%,
+    rgba(75, 155, 255, 0.28) 100%
+  );
+  border-bottom: 2px solid;
+  border-image: linear-gradient(90deg, #e59437, #a86bff, #4b9bff) 1;
+}
+
+.ov-faction-pill {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.ov-faction-avatar,
+.ov-faction-hero-img {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  object-fit: cover;
+}
+.ov-faction-avatar {
+  border: 1px solid #e59437;
+}
+.ov-faction-hero-img {
+  border: 1px solid #4b9bff;
+}
+
+.ov-faction-player {
+  font-size: 0.84rem;
+  font-weight: 800;
+  color: #fde68a;
+}
+
+.ov-faction-hero-name {
+  font-size: 0.74rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  color: #bfdbfe;
+  text-transform: uppercase;
+}
+
+.ov-faction-vs {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.ov-faction-rank-img {
+  width: 30px;
+  height: 30px;
+  object-fit: contain;
+}
+
+.ov-faction-rank-name {
+  font-family: "Barlow Condensed", sans-serif;
+  font-size: 1rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.ov-faction-live {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 14px;
+  background: rgba(0, 0, 0, 0.35);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+  font-size: 0.68rem;
+  font-weight: 800;
+}
+
+.ov-faction-souls.is-amber {
+  color: #f59e0b;
+}
+.ov-faction-souls.is-sapphire {
+  color: #60a5fa;
+}
+
+.ov-faction-meter {
+  flex: 1;
+  height: 6px;
+  border-radius: 999px;
+  background: #3b82f6;
+  overflow: hidden;
+}
+
+.ov-faction-meter-amber {
+  height: 100%;
+  background: #f59e0b;
+}
+
+.ov-faction-clock {
+  color: #e2e8f0;
+  font-family: "Barlow Condensed", sans-serif;
+  font-size: 0.84rem;
+}
+
+.ov-factions-stats {
+  display: flex;
+  align-items: stretch;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 10px 16px;
+}
+
+.ov-faction-stat {
+  display: flex;
+  flex-direction: column;
+}
+
+.ov-factions-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 14px;
+  background: rgba(0, 0, 0, 0.28);
+}
+
+.ov-factions-brand {
+  font-size: 0.62rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  color: rgba(255, 255, 255, 0.55);
+}
+
+/* ==========================================================================
+   7. HERO SPOTLIGHT & SESSÃO (Exclusivo Deadlock Hero Card)
+   ========================================================================== */
+.ov-dlk-spotlight {
+  position: relative;
+  display: flex;
+  min-width: min(450px, 100%);
+  max-width: min(620px, 100%);
+  width: max-content;
+  border-radius: 12px;
+  overflow: hidden;
+  background: var(--ov-bg-rgba);
+  backdrop-filter: blur(var(--ov-blur, 12px));
+  border: 1px solid color-mix(in oklab, var(--ov-accent) 40%, rgba(255, 255, 255, 0.12));
+  box-shadow: 0 16px 38px rgba(0, 0, 0, 0.55);
+}
+
+.ov-spotlight-art {
+  position: relative;
+  width: 96px;
+  min-height: 132px;
+  flex-shrink: 0;
+  overflow: hidden;
+}
+
+.ov-spotlight-portrait {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: top center;
+}
+
+.ov-spotlight-art::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent 35%, var(--ov-bg-hex, #0d1418) 100%);
+}
+
+.ov-spotlight-content {
+  flex: 1;
+  min-width: 0;
+  padding: 12px 18px 12px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.ov-spotlight-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.ov-spotlight-id {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.ov-spotlight-avatar {
+  width: 30px;
+  height: 30px;
+  border-radius: 6px;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.ov-spotlight-player {
+  font-size: 0.9rem;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.ov-spotlight-herotag {
+  font-size: 0.62rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  color: var(--ov-accent);
+  white-space: nowrap;
+}
+
+.ov-spotlight-rankbox {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  flex-shrink: 0;
+}
+
+.ov-spotlight-rank-img {
+  width: 36px;
+  height: 36px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
+.ov-spotlight-rank-text {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+}
+
+.ov-spotlight-rank-name {
+  font-family: "Barlow Condensed", sans-serif;
+  font-size: 0.95rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.ov-spotlight-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(72px, 1fr));
+  gap: 8px;
+}
+
+.ov-spotlight-stat {
+  padding: 6px 9px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.ov-spotlight-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+}
+
+.ov-spotlight-form {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.ov-spotlight-form-lbl {
+  font-size: 0.64rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  color: var(--ov-accent);
+}
+
+.ov-spotlight-brand {
+  font-size: 0.6rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+/* ==========================================================================
+   8. MINIMALISTA COMPACTO (Stream Pill)
+   ========================================================================== */
+.ov-dlk-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  padding: 7px 16px;
+  border-radius: 999px;
+  background: var(--ov-bg-rgba);
+  backdrop-filter: blur(var(--ov-blur, 14px));
+  border: 1px solid color-mix(in oklab, var(--ov-accent) 45%, rgba(255, 255, 255, 0.14));
+  box-shadow: 0 10px 26px rgba(0, 0, 0, 0.5);
+}
+
+.ov-pill-rank-img {
+  width: 32px;
+  height: 32px;
+  object-fit: contain;
+}
+
+.ov-pill-avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.ov-pill-id {
+  display: flex;
+  flex-direction: column;
+}
+
+.ov-pill-name {
+  font-size: 0.72rem;
+  font-weight: 800;
+  line-height: 1.1;
+}
+
+.ov-pill-rank-line {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.ov-pill-rank {
+  font-family: "Barlow Condensed", sans-serif;
+  font-size: 0.92rem;
+  font-weight: 800;
+  color: var(--ov-accent);
+  text-transform: uppercase;
+}
+
+.ov-pill-sep {
+  width: 1px;
+  height: 24px;
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.ov-pill-stats {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.ov-pill-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.ov-pill-stat .ov-stat-label {
+  font-size: 0.58rem;
+}
+
+.ov-pill-stat .ov-stat-value {
+  font-size: 1.18rem;
+}
+
+.ov-pill-live {
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: rgba(239, 68, 68, 0.22);
+  color: #fca5a5;
+  font-size: 0.66rem;
+  font-weight: 800;
+}

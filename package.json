@@ -1,0 +1,9 @@
+{
+  "name": "deadlock-overlay-studio",
+  "version": "1.0.0",
+  "description": "Studio de Overlays para Deadlock (OBS Browser Source & Exportacao Local) inspirado no editor da Tracker.gg",
+  "type": "module",
+  "scripts": {
+    "start": "node server.mjs"
+  }
+}

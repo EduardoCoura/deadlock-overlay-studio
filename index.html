@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="dark">
+  <title>Deadlock Overlay Studio</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230b0e14'/%3E%3Crect x='4' y='4' width='56' height='56' rx='11' fill='none' stroke='%23f1ed62' stroke-width='4'/%3E%3Ctext x='32' y='42' text-anchor='middle' font-family='Arial,sans-serif' font-weight='900' font-size='26' fill='%23f1ed62'%3EDLK%3C/text%3E%3C/svg%3E">
+  <script>
+    if (new URLSearchParams(window.location.search).get('obs') === '1') {
+      document.documentElement.dataset.obs = 'true';
+    }
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;800;900&family=Cinzel:wght@700&family=Inter:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./styles/studio.css">
+  <link rel="stylesheet" href="./styles/overlays.css">
+</head>
+<body>
+  <div class="studio-shell">
+    <header class="studio-header">
+      <div class="brand-lockup">
+        <span class="brand-mark">DLK</span>
+        <div class="brand-titles">
+          <h1>Deadlock Overlay Studio</h1>
+          <p>Editor ao vivo estilo Tracker.gg • Dados reais via Deadlock API</p>
+        </div>
+      </div>
+
+      <div class="header-actions">
+        <button type="button" id="btn-refresh-data" class="btn btn--ghost btn--sm">Atualizar Dados</button>
+        <button type="button" id="btn-open-obs-modal" class="btn btn--sm">Configurar OBS</button>
+        <button type="button" id="btn-copy-obs-url" class="btn btn--primary btn--sm">Copiar URL OBS</button>
+      </div>
+    </header>
+
+    <div class="studio-layout">
+      <main class="canvas-pane">
+        <div class="canvas-toolbar">
+          <div class="toolbar-group">
+            <label for="select-scene" class="toolbar-label">Cenário de Fundo</label>
+            <select id="select-scene" class="select-input"></select>
+          </div>
+          <div class="toolbar-group">
+            <label class="toggle-label">
+              <input type="checkbox" id="toggle-safezone">
+              <span>Guia Área Segura (OBS)</span>
+            </label>
+            <label class="toggle-label">
+              <input type="checkbox" id="toggle-sim-live">
+              <span>Simular Partida Ao Vivo</span>
+            </label>
+          </div>
+        </div>
+
+        <div id="stream-viewport" class="stream-viewport" data-scene="infernus" data-has-art="true" data-safezone="false">
+          <div class="canvas-safezone" aria-hidden="true"></div>
+          <div class="overlay-stage">
+            <div id="overlay-anchor" class="overlay-anchor"></div>
+          </div>
+        </div>
+
+        <div class="canvas-statusbar" role="status" aria-live="polite">
+          <div class="status-pill">
+            <span id="status-dot" class="status-dot" aria-hidden="true"></span>
+            <span id="status-text">Carregando dados da Deadlock API...</span>
+          </div>
+          <span id="status-meta">Atualização automática configurável</span>
+        </div>
+      </main>
+
+      <aside class="studio-sidebar" aria-label="Opções da Overlay">
+        <div class="sidebar-top">
+          <div class="sidebar-heading-row">
+            <h2>Opções da Overlay</h2>
+            <button type="button" id="btn-reset-style" class="btn btn--ghost btn--sm">Resetar Estilo</button>
+          </div>
+
+          <button type="button" id="btn-open-player-modal" class="player-card-btn">
+            <img id="sidebar-player-avatar" class="player-card-avatar" src="" alt="">
+            <div class="player-card-meta">
+              <div id="sidebar-player-name" class="player-card-name">Carregando...</div>
+              <div id="sidebar-player-sub" class="player-card-sub">Clique para trocar jogador</div>
+            </div>
+            <img id="sidebar-player-rank" class="player-card-rank" src="" alt="">
+          </button>
+        </div>
+
+        <div class="sidebar-tabs" role="tablist" aria-label="Categorias de personalização">
+          <button type="button" role="tab" id="tab-btn-styles" class="tab-btn" aria-selected="true" aria-controls="panel-styles" data-tab="styles">Estilos (8)</button>
+          <button type="button" role="tab" id="tab-btn-visual" class="tab-btn" aria-selected="false" aria-controls="panel-visual" data-tab="visual">Visual</button>
+          <button type="button" role="tab" id="tab-btn-stats" class="tab-btn" aria-selected="false" aria-controls="panel-stats" data-tab="stats">Stats</button>
+          <button type="button" role="tab" id="tab-btn-obs" class="tab-btn" aria-selected="false" aria-controls="panel-obs" data-tab="obs">OBS</button>
+        </div>
+
+        <div class="sidebar-scroll">
+          <!-- TAB 1: ESTILOS -->
+          <section id="panel-styles" class="tab-panel" role="tabpanel" aria-labelledby="tab-btn-styles">
+            <div class="control-section">
+              <h3 class="section-title">Escolha um Estilo</h3>
+              <div id="style-grid" class="style-grid"></div>
+            </div>
+          </section>
+
+          <!-- TAB 2: VISUAL & CORES -->
+          <section id="panel-visual" class="tab-panel" role="tabpanel" aria-labelledby="tab-btn-visual" hidden>
+            <div class="control-section">
+              <h3 class="section-title">Paletas Rápidas</h3>
+              <div id="palette-swatches" class="palette-swatches"></div>
+            </div>
+
+            <div class="control-section">
+              <h3 class="section-title">Cores Personalizadas</h3>
+              <div class="field-row">
+                <label for="color-accent" class="field-label">Cor Principal</label>
+                <div class="color-pair">
+                  <input type="color" id="color-accent" class="color-swatch-input">
+                  <input type="text" id="hex-accent" class="hex-input" aria-label="Hex da cor principal" maxlength="7">
+                </div>
+              </div>
+              <div class="field-row">
+                <label for="color-bg" class="field-label">Cor de Fundo</label>
+                <div class="color-pair">
+                  <input type="color" id="color-bg" class="color-swatch-input">
+                  <input type="text" id="hex-bg" class="hex-input" aria-label="Hex da cor de fundo" maxlength="7">
+                </div>
+              </div>
+              <div class="field-row">
+                <label for="color-text" class="field-label">Cor dos Valores</label>
+                <div class="color-pair">
+                  <input type="color" id="color-text" class="color-swatch-input">
+                  <input type="text" id="hex-text" class="hex-input" aria-label="Hex da cor dos valores" maxlength="7">
+                </div>
+              </div>
+              <div class="field-row">
+                <label for="color-label" class="field-label">Cor dos Rótulos</label>
+                <div class="color-pair">
+                  <input type="color" id="color-label" class="color-swatch-input">
+                  <input type="text" id="hex-label" class="hex-input" aria-label="Hex da cor dos rótulos" maxlength="7">
+                </div>
+              </div>
+            </div>
+
+            <div class="control-section">
+              <h3 class="section-title">Transparência, Blur e Escala</h3>
+              <div class="field-stack">
+                <label for="range-alpha" class="field-label">Opacidade do Fundo</label>
+                <div class="range-row">
+                  <input type="range" id="range-alpha" min="0" max="100" step="2">
+                  <span id="val-alpha" class="range-val">80%</span>
+                </div>
+              </div>
+              <div class="field-stack">
+                <label for="range-blur" class="field-label">Desfoque Glass (Blur)</label>
+                <div class="range-row">
+                  <input type="range" id="range-blur" min="0" max="24" step="1">
+                  <span id="val-blur" class="range-val">10px</span>
+                </div>
+              </div>
+              <div class="field-stack">
+                <label for="range-scale" class="field-label">Escala da Overlay</label>
+                <div class="range-row">
+                  <input type="range" id="range-scale" min="70" max="140" step="5">
+                  <span id="val-scale" class="range-val">100%</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="control-section">
+              <h3 class="section-title">Elementos Visíveis</h3>
+              <label class="toggle-label"><input type="checkbox" id="toggle-gradient"><span>Gradiente no Fundo</span></label>
+              <label class="toggle-label"><input type="checkbox" id="toggle-rank-icon"><span>Ícone do Rank</span></label>
+              <label class="toggle-label"><input type="checkbox" id="toggle-avatar"><span>Avatar da Steam</span></label>
+              <label class="toggle-label"><input type="checkbox" id="toggle-hero-portrait"><span>Retrato do Herói</span></label>
+              <label class="toggle-label"><input type="checkbox" id="toggle-recent-form"><span>Últimas 5 Partidas (V/D)</span></label>
+              <label class="toggle-label"><input type="checkbox" id="toggle-live-bar"><span>Banner de Partida Ao Vivo</span></label>
+              <label class="toggle-label"><input type="checkbox" id="toggle-footer"><span>Mostrar Marca / Canal</span></label>
+              <div class="field-stack">
+                <label for="input-footer-text" class="field-label">Texto da Marca / Seu Canal</label>
+                <input type="text" id="input-footer-text" class="text-input" maxlength="38" placeholder="ex: twitch.tv/seucanal">
+              </div>
+            </div>
+          </section>
+
+          <!-- TAB 3: ESTATÍSTICAS -->
+          <section id="panel-stats" class="tab-panel" role="tabpanel" aria-labelledby="tab-btn-stats" hidden>
+            <div class="control-section">
+              <h3 class="section-title">Filtros de Dados Deadlock</h3>
+              <div class="field-stack">
+                <label for="select-game-mode" class="field-label">Modo de Jogo</label>
+                <select id="select-game-mode" class="select-input">
+                  <option value="all">Geral (Normal + Street Brawl)</option>
+                  <option value="normal">Normal / Ranked Padrão</option>
+                  <option value="street_brawl">Street Brawl</option>
+                </select>
+              </div>
+              <div class="field-stack">
+                <label for="select-stat-window" class="field-label">Janela de Estatísticas</label>
+                <select id="select-stat-window" class="select-input">
+                  <option value="career">Carreira Completa</option>
+                  <option value="recent20">Últimas 20 Partidas</option>
+                  <option value="session12h">Sessão de Hoje (12h)</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="control-section">
+              <h3 class="section-title">Stats Ativos na Overlay</h3>
+              <ul id="active-stats-list" class="active-stats-list"></ul>
+            </div>
+
+            <div class="control-section">
+              <h3 class="section-title">+ Adicionar Estatística</h3>
+              <div id="catalog-add-grid" class="catalog-add-grid"></div>
+            </div>
+          </section>
+
+          <!-- TAB 4: OBS & POSIÇÃO -->
+          <section id="panel-obs" class="tab-panel" role="tabpanel" aria-labelledby="tab-btn-obs" hidden>
+            <div class="control-section">
+              <h3 class="section-title">Posição na Tela 16:9</h3>
+              <div id="position-grid" class="position-grid"></div>
+            </div>
+
+            <div class="control-section">
+              <h3 class="section-title">Atualização Automática</h3>
+              <div class="field-stack">
+                <label for="select-refresh" class="field-label">Intervalo de Consulta à API</label>
+                <select id="select-refresh" class="select-input">
+                  <option value="30">A cada 30 segundos</option>
+                  <option value="60">A cada 60 segundos (Recomendado)</option>
+                  <option value="120">A cada 2 minutos</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="control-section">
+              <h3 class="section-title">URL do Browser Source (OBS)</h3>
+              <div id="obs-url-preview" class="obs-code-box" tabindex="0"></div>
+              <button type="button" id="btn-copy-obs-inline" class="btn btn--primary">Copiar URL para OBS</button>
+              <button type="button" id="btn-download-obs-html" class="btn">Baixar HTML Standalone (Arquivo Local OBS)</button>
+            </div>
+          </section>
+        </div>
+
+        <div class="sidebar-footer">
+          <button type="button" id="btn-sidebar-export" class="btn btn--primary">Exportar / Usar no OBS</button>
+        </div>
+      </aside>
+    </div>
+  </div>
+
+  <!-- MODAL DE BUSCA DE JOGADOR STEAM / DEADLOCK -->
+  <dialog id="player-dialog" class="studio-dialog" closedby="any" aria-labelledby="player-dialog-title">
+    <div class="dialog-head">
+      <h2 id="player-dialog-title">Selecionar Jogador do Deadlock</h2>
+      <button type="button" id="btn-close-player-dialog" class="btn btn--ghost btn--sm">Fechar</button>
+    </div>
+    <div class="dialog-body">
+      <search>
+        <form id="player-search-form" class="search-form">
+          <label for="player-search-input" class="visually-hidden">Buscar por nick da Steam, SteamID3 ou SteamID64</label>
+          <input
+            type="search"
+            id="player-search-input"
+            class="text-input"
+            placeholder="Nick da Steam, SteamID3 (385814004) ou SteamID64..."
+            autofocus
+          >
+          <button type="submit" class="btn btn--primary">Buscar</button>
+        </form>
+      </search>
+
+      <div class="toolbar-group">
+        <button type="button" id="btn-load-sa" class="btn btn--sm">Top América do Sul</button>
+        <button type="button" id="btn-load-na" class="btn btn--sm">Top América do Norte</button>
+        <button type="button" id="btn-load-eu" class="btn btn--sm">Top Europa</button>
+        <button type="button" id="btn-load-live" class="btn btn--sm">Em Partida Agora</button>
+      </div>
+
+      <p id="player-search-status" class="toolbar-label">Dica: perfis privados na Steam podem não aparecer no histórico.</p>
+      <ul id="player-search-results" class="search-results"></ul>
+    </div>
+  </dialog>
+
+  <!-- MODAL DE INSTRUÇÕES E EXPORTAÇÃO OBS -->
+  <dialog id="obs-dialog" class="studio-dialog" closedby="any" aria-labelledby="obs-dialog-title">
+    <div class="dialog-head">
+      <h2 id="obs-dialog-title">Como usar sua Overlay no OBS Studio</h2>
+      <button type="button" id="btn-close-obs-dialog" class="btn btn--ghost btn--sm">Fechar</button>
+    </div>
+    <div class="dialog-body">
+      <div>
+        <strong>Opção 1 — URL do Browser Source (Recomendado)</strong>
+        <p class="toolbar-label">No OBS, adicione uma fonte <strong>Navegador (Browser Source)</strong> com Largura <code>1920</code> e Altura <code>1080</code> usando a URL abaixo (no site online, funciona sem precisar rodar nada no PC):</p>
+        <div id="obs-modal-url" class="obs-code-box" tabindex="0"></div>
+      </div>
+
+      <div class="toolbar-group">
+        <button type="button" id="btn-modal-copy-url" class="btn btn--primary">Copiar URL</button>
+        <a id="btn-modal-preview-tab" class="btn" href="./?obs=1" target="_blank" rel="noopener noreferrer">Abrir Preview OBS em Nova Aba</a>
+      </div>
+
+      <div>
+        <strong>Opção 2 — Arquivo HTML Standalone (Sem precisar rodar servidor!)</strong>
+        <p class="toolbar-label">Baixe um arquivo <code>.html</code> único já com todas as suas cores, estilo e conexão direta com a Deadlock API. No OBS, marque <strong>Arquivo local</strong> na fonte Navegador (<code>1920x1080</code>).</p>
+        <button type="button" id="btn-modal-download-html" class="btn">Baixar deadlock-overlay-obs.html</button>
+      </div>
+    </div>
+  </dialog>
+
+  <div id="toast-banner" class="toast-banner" role="status" aria-live="polite" hidden></div>
+
+  <script>
+    if (window.location.protocol === 'file:') {
+      var st = document.getElementById('status-text');
+      var dot = document.getElementById('status-dot');
+      if (st) st.textContent = 'Erro: abra o studio pelo start.bat (http://127.0.0.1:4747/) — o navegador bloqueia módulos locais em file://.';
+      if (dot) dot.className = 'status-dot is-error';
+    }
+  </script>
+  <script type="module" src="./js/app.js"></script>
+</body>
+</html>
